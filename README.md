@@ -8,7 +8,7 @@ This is being written as a pet project where the objective is an open souce yet 
 
 ### Hardware
 - [Adafruit S2 Feather Reverse](https://www.adafruit.com/product/5345)
-- [PiJuice Zero 800mAh](https://core-electronics.com.au/3-pin-lipo-battery-for-pijuice-zero-800mah.html) or a Lipo with deminsions to 7mm x 25mm x 45mm
+- [PiJuice Zero 800mAh](https://core-electronics.com.au/3-pin-lipo-battery-for-pijuice-zero-800mah.html) or a Lipo with deminsions similar to 7mm x 25mm x 45mm
 - 3D Printing Facilities
 
 ### Software
