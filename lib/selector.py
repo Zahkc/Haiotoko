@@ -1,47 +1,42 @@
 from adafruit_display_shapes.circle import Circle
 
-spos = -1
 select = Circle(15, 10, 10, outline=0x000000, stroke=2)
+spos = -1
 
-def showSelector(splash):
-    global spos
-    if spos == -1:
-        splash.append(select)
-        spos += 1
-        print("added")
+class selector:
 
-def hideSelector(splash):
-    global spos
-    if spos != -1:
-        splash.pop()
+    def __init__(self, positions):
+        self.size = len(positions)
+        self.positions = positions
 
-def nextPos():
-    global spos
-    spos = (spos + 1) % 6
-    updatePos()
+    def showSelector(self, selectorGroup):
+        global spos
+        if spos == -1:
+            selectorGroup.insert(0,select)
+            spos += 1
 
-def lastPos():
-    global spos
-    spos = (spos - 1) % 6
-    updatePos()
+    def hideSelector(self, selectorGroup):
+        global spos
+        if spos != -1:
+            selectorGroup.pop()
 
-def updatePos():
-    global select
-    if spos == 0:
-        select.x = 5
-        select.y = 0
-    elif spos == 1:
-        select.x = 40
-        select.y = 0
-    elif spos == 2:
-        select.x = 70
-        select.y = 0
-    elif spos == 3:
-        select.x = 90
-        select.y = 0
-    elif spos == 4:
-        select.x = 0
-        select.y = 220
-    elif spos == 5:
-        select.x = 110
-        select.y = 220
+    def getSPos(self):
+        return spos
+
+    def getSize(self):
+        return self.size
+
+    def nextPos(self):
+        global spos
+        spos = (spos + 1) % self.size
+        self.updatePos()
+
+    def lastPos(self):
+        global spos
+        spos = (spos - 1) % self.size
+        self.updatePos()
+
+    def updatePos(self):
+        global select
+        select.x = self.positions[spos][0]
+        select.y = self.positions[spos][1]

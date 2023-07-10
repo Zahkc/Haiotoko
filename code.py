@@ -1,12 +1,17 @@
 import time
+import json
 import alarm
 import board
 import displayio
-import digitalio
 import bitmaptools
 import adafruit_imageload
+import storage
+import supervisor
+import microcontroller
 
 import menu
+import entity
+import animate
 import selector
 import buttonBus
 
@@ -15,27 +20,59 @@ import buttonBus
 #setup
 board.DISPLAY.root_group.hidden = False
 board.DISPLAY.rotation = 90
-splash = displayio.Group()
-board.DISPLAY.show(splash)
+
+try:
+    storage.remount("/", False)
+except RuntimeError as E:
+    print("Failed Mount")
+
+root = displayio.Group()
+
+bgGroup = displayio.Group()
+bgItemGroup = displayio.Group()
+haioGroup = displayio.Group()
+fgItemGroup = displayio.Group()
+menuGroup = displayio.Group()
+selectorGroup = displayio.Group()
+
+board.DISPLAY.show(root)
+
+entity = entity.entity()
+entity.importSave()
+entity.show(haioGroup)
+
 
 bg, bgPallette = adafruit_imageload.load("/Sprites/Backgrounds/bg1.bmp", bitmap=displayio.Bitmap, palette=displayio.Palette)
 bgTile = displayio.TileGrid(bg, pixel_shader=bgPallette)
+bgGroup.append(bgTile)
 
-tama, tamaPallette = adafruit_imageload.load("/Sprites/Characters/MUSH/ADULT/BODY.BMP", bitmap=displayio.Bitmap, palette=displayio.Palette)
-tamaPallette.make_transparent(3)
-tamaTile = displayio.TileGrid(tama, pixel_shader=tamaPallette, x=20, y=100)
+root.append(bgGroup)
+root.append(bgItemGroup)
+root.append(haioGroup)
+root.append(fgItemGroup)
+root.append(menuGroup)
+root.append(selectorGroup)
+
+select = selector.selector([[5,0],[40,0],[70,0],[90,0],[0,220],[110,220]])
+select.showSelector(selectorGroup)
+wakeTime = time.monotonic()
 
 
-splash.append(bgTile)
-splash.append(tamaTile)
+#Load Settings
+with open("/Save/settings.json", "r") as reader:
+    settings = json.loads(reader.read())
+timeoutAmount = settings["timeout"]
+timeout = round(time.monotonic() + timeoutAmount, 1)
 
-bounce = False
-bounceAmount = -10
-selector.showSelector(splash)
+nextWake = max(entity.character["nextEventTime"], entity.character["nextEvloutionTime"], entity.character["death"]) - entity.character["age"]
 
 #Menu Activites
 def do(x):
+    global wakeTime
     if x == 0:
+        entity.character["age"] +=  int(time.monotonic() - wakeTime)
+        wakeTime = time.monotonic()
+        print(entity.character["age"])
         pass
     elif x == 1:
         pass
@@ -44,33 +81,37 @@ def do(x):
     elif x == 3:
         pass
     elif x == 4:
-        menu.toggleMenu(splash)
+        menu.toggleMenu(root)
     elif x == 5:
         buttonBus.button1.deinit()
         pin_alarm = alarm.pin.PinAlarm(pin=board.D1, value=True, pull=True)
         time.sleep(0.5)
         alarm.exit_and_deep_sleep_until_alarms(pin_alarm)
 
+def checkTimeout():
+    # print("Time: " + str(round(time.monotonic(), 1)) + " Timeout: " + str(timeout))
+    if round(time.monotonic(), 1) == timeout:
+        entity.character["age"] +=  int(time.monotonic() - wakeTime)
+        # entity.update()
+        buttonBus.button1.deinit()
+        pin_alarm = alarm.pin.PinAlarm(pin=board.D1, value=True, pull=True)
+        time.sleep(0.5)
+        alarm.exit_and_deep_sleep_until_alarms(pin_alarm)
 
 #System Loop
 while True:
-
-    if(round(time.monotonic()%0.5, 1) == 0.5):
-        if bounce == False:
-            bounce = True
-            bounceAmount = bounceAmount * -1
-            tamaTile.y += bounceAmount
-    else:
-        if bounce == True:
-            bounce = False
-
+    checkTimeout()
+    animate.doAnimate(haioGroup, 0.5, 10)
 
     if buttonBus.getSelectedButton() == 0:
-        selector.lastPos()
+        select.lastPos()
         time.sleep(0.2)
+        timeout = round(time.monotonic() + timeoutAmount, 1)
     elif buttonBus.getSelectedButton() == 1:
-        do(selector.spos)
+        do(select.getSPos())
         time.sleep(0.2)
+        timeout = round(time.monotonic() + timeoutAmount, 1)
     elif buttonBus.getSelectedButton() == 2:
-        selector.nextPos()
+        select.nextPos()
         time.sleep(0.2)
+        timeout = round(time.monotonic() + timeoutAmount, 1)

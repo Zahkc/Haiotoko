@@ -15,7 +15,7 @@ def toggleMenu(splash):
     if menuToggle:
         battery.reset()
         time.sleep(0.05)
-        timeText = bitmap_label.Label(terminalio.FONT, text="Time: " + str(time.time() - 946684800), scale=1, color=0x000000, x=25, y=60)
+        timeText = bitmap_label.Label(terminalio.FONT, text="Time: " + str(time.monotonic()), scale=1, color=0x000000, x=25, y=60)
         batText = bitmap_label.Label(terminalio.FONT, text="Battery: " + str(round(battery.cell_percent)) + "%", scale=1, color=0x000000, x=25, y=80)
         menuGroup = displayio.Group()
         menuGroup.append(Rect(10, 10, 115, 220, fill=0xFFFFFF, outline=0x000000, stroke=2))
