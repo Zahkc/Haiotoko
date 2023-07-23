@@ -6,13 +6,15 @@ spos = -1
 class selector:
 
     def __init__(self, positions):
+        global spos
         self.size = len(positions)
         self.positions = positions
+        spos = -1
 
     def showSelector(self, selectorGroup):
         global spos
         if spos == -1:
-            selectorGroup.insert(0,select)
+            selectorGroup.append(select)
             spos += 1
 
     def hideSelector(self, selectorGroup):
